@@ -1,9 +1,12 @@
 package fr.uvsq.cprog.collex;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -15,7 +18,7 @@ public class DnsTest {
   private final Path dataFile = Path.of("target/test-dns.txt");
 
   @BeforeEach
-  public void setup() throws Exception {
+  public void setup() throws IOException {
     // On écrit un fichier de données propre pour chaque test
     Files.createDirectories(dataFile.getParent());
     Files.writeString(
@@ -23,15 +26,15 @@ public class DnsTest {
         // format: "nom_machine adresse_ip"
         // + ligne vide pour vérifier que le parseur ignore
         """
-        www.uvsq.fr 193.51.31.90
-
-        ecampus.uvsq.fr 193.51.25.12
-        """
+            www.uvsq.fr 193.51.31.90
+            
+            ecampus.uvsq.fr 193.51.25.12
+            """
     );
   }
 
   @Test
-  void charge_base_par_nom() throws Exception {
+  void charge_base_par_nom() throws IOException {
     Dns dns = new Dns();
     Map<String, DnsItem> byName = dns.getByName();
 
@@ -46,7 +49,7 @@ public class DnsTest {
   }
 
   @Test
-  public void charge_base_par_ip() throws Exception {
+  public void charge_base_par_ip() throws IOException {
     Dns dns = new Dns();
     Map<String, DnsItem> byIp = dns.getByIp();
 
@@ -63,14 +66,61 @@ public class DnsTest {
   }
 
   @Test
-  public void ligne_invalide() throws Exception {
+  public void ligne_invalide() throws IOException {
     Files.writeString(
         dataFile,
         """
-         ligne_invalide_sans_separateur
-         """
+            ligne_invalide_sans_separateur
+            """
     );
 
     assertThrows(IllegalArgumentException.class, Dns::new);
   }
+
+  @Test
+  public void getItem_par_nom_trouve() throws IOException {
+    Dns dns = new Dns();
+    DnsItem item = dns.getItem(new NomMachine("www.uvsq.fr"));
+
+    assertNotNull(item);
+    assertEquals("www.uvsq.fr", item.getNomMachine().getNomQualifie());
+    assertEquals("193.51.31.90", item.getAdresseIp().getAdresseIp());
+  }
+
+  @Test
+  public void getItem_par_nom_absent() throws IOException {
+    Dns dns = new Dns();
+    DnsItem item = dns.getItem(new NomMachine("inconnu.uvsq.fr"));
+    assertNull(item);
+  }
+
+  @Test
+  public void getItem_par_ip_trouve() throws IOException {
+    Dns dns = new Dns();
+    DnsItem item = dns.getItem(new AdresseIp("193.51.25.12"));
+
+    assertNotNull(item);
+    assertEquals("ecampus.uvsq.fr", item.getNomMachine().getNomQualifie());
+    assertEquals("193.51.25.12", item.getAdresseIp().getAdresseIp());
+  }
+
+  @Test
+  public void getItem_par_ip_absent() throws IOException {
+    Dns dns = new Dns();
+    DnsItem item = dns.getItem(new AdresseIp("10.0.0.1"));
+    assertNull(item);
+  }
+
+  @Test
+  void getItem_nom_null_retourne_null() throws IOException {
+    Dns dns = new Dns();
+    assertNull(dns.getItem((NomMachine) null));
+  }
+
+  @Test
+  void getItem_ip_null_retourne_null() throws IOException {
+    Dns dns = new Dns();
+    assertNull(dns.getItem((AdresseIp) null));
+  }
+
 }
