@@ -72,6 +72,33 @@ public class Dns {
     }
   }
 
+  /**
+   * Retourne l'item correspondant à un nom de machine qualifié.
+   *
+   * @param nom le nom qualifié de la machine
+   * @return l'item correspondant, ou null si absent
+   */
+  public DnsItem getItem(NomMachine nom) {
+    if (nom == null) {
+      return null;
+    }
+    return byName.get(nom.getNomQualifie());
+  }
+
+  /**
+   * Retourne l'item correspondant à une adresse IP.
+   *
+   * @param ip l'adresse IP
+   * @return l'item correspondant, ou null si absent
+   */
+  public DnsItem getItem(AdresseIp ip) {
+    if (ip == null) {
+      return null;
+    }
+    return byIp.get(ip.getAdresseIp());
+  }
+
+
   public Map<String, DnsItem> getByName() {
     return Map.copyOf(byName);
   }
