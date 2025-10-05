@@ -24,16 +24,12 @@ public class AdresseIp {
       throw new IllegalArgumentException("L'adresse ne comporte pas 4 parties");
     }
 
-    try {
-      for (int i = 0; i < 4; i++) {
-        int x = Integer.parseInt(parts[i]);
-        if (x < 0 || x > 255) {
-          throw new IllegalArgumentException("Numéro invalide : " + x);
-        }
-        adresseIp[i] = x;
+    for (int i = 0; i < 4; i++) {
+      int x = Integer.parseInt(parts[i]);
+      if (x < 0 || x > 255) {
+        throw new IllegalArgumentException("Numéro invalide : " + x);
       }
-    } catch (NumberFormatException e) {
-      throw new NumberFormatException("Format invalide : " + ip);
+      adresseIp[i] = x;
     }
   }
 
