@@ -1,0 +1,82 @@
+package fr.uvsq.cprog.collex;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+/**
+ * DNS : charge une base "nom_machine adresse_ip" depuis un fichier texte.
+ */
+public class Dns {
+
+  private static final String PROP_FILE = "/dns.properties";
+  private static final String KEY_DNS_FILE = "dns.file";
+
+  private final Path dataFile;
+  private final Map<String, DnsItem> byName = new HashMap<>();
+  private final Map<String, DnsItem> byIp = new HashMap<>();
+
+  /**
+   * Construit le DNS et charge la base depuis le fichier texte. Format attendu : une entrée par
+   * ligne "nom_machine adresse_ip".
+   *
+   * @throws IOException en cas de problème d'I/O
+   */
+  public Dns() throws IOException {
+    Properties p = new Properties();
+    try (InputStream in = Dns.class.getResourceAsStream(PROP_FILE)) {
+      if (in == null) {
+        throw new IllegalArgumentException("Fichier de propriétés introuvable : " + PROP_FILE);
+      }
+      p.load(in);
+    }
+
+    String file = p.getProperty(KEY_DNS_FILE);
+    if (file == null || file.isBlank()) {
+      throw new IllegalArgumentException("Propriété manquante ou vide : " + KEY_DNS_FILE);
+    }
+
+    this.dataFile = Path.of(file);
+    load();
+  }
+
+  private void load() throws IOException {
+    if (!Files.exists(dataFile)) {
+      throw new FileNotFoundException("Fichier introuvable : " + dataFile.toAbsolutePath());
+    }
+
+    for (String raw : Files.readAllLines(dataFile, StandardCharsets.UTF_8)) {
+      String line = raw.trim();
+      if (line.isEmpty()) {
+        continue;
+      }
+
+      String[] parts = line.split("\\s+");
+      if (parts.length != 2) {
+        throw new IllegalArgumentException("Ligne invalide : " + raw);
+      }
+
+      NomMachine nom = new NomMachine(parts[0]);
+      AdresseIp ip = new AdresseIp(parts[1]);
+      DnsItem item = new DnsItem(nom, ip);
+
+      // insertion dans les deux maps
+      byName.put(nom.getNomQualifie(), item);
+      byIp.put(ip.toString(), item);
+    }
+  }
+
+  public Map<String, DnsItem> getByName() {
+    return Map.copyOf(byName);
+  }
+
+  public Map<String, DnsItem> getByIp() {
+    return Map.copyOf(byIp);
+  }
+}
