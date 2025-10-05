@@ -9,7 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +31,8 @@ public class DnsTest {
             www.uvsq.fr 193.51.31.90
             
             ecampus.uvsq.fr 193.51.25.12
+            mail.uvsq.fr 193.51.31.100
+            poste.ens.fr 193.51.30.1
             """
     );
   }
@@ -39,7 +43,7 @@ public class DnsTest {
     Map<String, DnsItem> byName = dns.getByName();
 
     // On a bien nos 2 items
-    assertEquals(2, byName.size());
+    assertEquals(4, byName.size());
     assertTrue(byName.containsKey("www.uvsq.fr"));
     assertTrue(byName.containsKey("ecampus.uvsq.fr"));
 
@@ -54,7 +58,7 @@ public class DnsTest {
     Map<String, DnsItem> byIp = dns.getByIp();
 
     // on a bien les 2 IP du fichier
-    assertEquals(2, byIp.size());
+    assertEquals(4, byIp.size());
     assertTrue(byIp.containsKey("193.51.31.90"));
     assertTrue(byIp.containsKey("193.51.25.12"));
 
@@ -121,6 +125,61 @@ public class DnsTest {
   void getItem_ip_null_retourne_null() throws IOException {
     Dns dns = new Dns();
     assertNull(dns.getItem((AdresseIp) null));
+  }
+
+  private static Set<String> noms(List<DnsItem> items) {
+    return items.stream()
+        .map(i -> i.getNomMachine().getNomQualifie())
+        .collect(java.util.stream.Collectors.toSet());
+  }
+
+  @Test
+  void getItems_retourne_les_machines_du_domaine() throws IOException {
+    Dns dns = new Dns();
+
+    var items = dns.getItems("uvsq.fr");
+
+    assertEquals(3, items.size());
+    assertEquals(
+        Set.of("www.uvsq.fr", "ecampus.uvsq.fr", "mail.uvsq.fr"),
+        noms(items)
+    );
+  }
+
+  @Test
+  void getItems_autre_domaine() throws IOException {
+    Dns dns = new Dns();
+
+    var items = dns.getItems("ens.fr");
+
+    assertEquals(1, items.size());
+    assertEquals(Set.of("poste.ens.fr"), noms(items));
+  }
+
+  @Test
+  void getItems_domaine_inconnu_retourne_vide() throws IOException {
+    Dns dns = new Dns();
+    assertTrue(dns.getItems("inconnu.fr").isEmpty());
+  }
+
+  @Test
+  void getItems_null_ou_blank_retourne_vide() throws IOException {
+    Dns dns = new Dns();
+    assertTrue(dns.getItems(null).isEmpty());
+    assertTrue(dns.getItems("   ").isEmpty());
+  }
+
+  @Test
+  void getItems_accepte_majuscules_et_espaces() throws IOException {
+    Dns dns = new Dns();
+
+    var items = dns.getItems("  UVSQ.FR  ");
+
+    assertEquals(3, items.size());
+    assertEquals(
+        Set.of("www.uvsq.fr", "ecampus.uvsq.fr", "mail.uvsq.fr"),
+        noms(items)
+    );
   }
 
 }
