@@ -30,7 +30,7 @@ public class AdresseIpTest {
       "127.0.0",  // Format invalide
       "12a.0.0.1",  // Caractère interdit
       "456.0.0.1",  // Borne illegal
-      "-356.0.01"  // Borne illegal
+      "-356.0.0.1"  // Borne illegal
   })
   public void testAdresseIPIllegal(String ip) {
     assertThrows(IllegalArgumentException.class, () -> new AdresseIp(ip));
