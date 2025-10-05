@@ -14,8 +14,13 @@ public class DnsItem {
    *
    * @param nomMachine le nom de machine
    * @param adresseIp  l'adresse IP
+   * @throws IllegalArgumentException si un paramètre est null
    */
   public DnsItem(NomMachine nomMachine, AdresseIp adresseIp) {
+    if (nomMachine == null || adresseIp == null) {
+      throw new IllegalArgumentException("NomMachine et AdresseIp ne peuvent pas être null");
+    }
+
     this.nomMachine = nomMachine;
     this.adresseIp = adresseIp;
   }
