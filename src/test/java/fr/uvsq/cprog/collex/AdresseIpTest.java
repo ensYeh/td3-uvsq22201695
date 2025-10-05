@@ -15,7 +15,7 @@ public class AdresseIpTest {
       "127.0.0.1"
   })
   public void testAdresseIP(String ip) {
-    assertEquals(ip, new AdresseIp(ip).toString());
+    assertEquals(ip, new AdresseIp(ip).getAdresseIp());
   }
 
   @ParameterizedTest

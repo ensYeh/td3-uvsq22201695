@@ -33,8 +33,7 @@ public class AdresseIp {
     }
   }
 
-  @Override
-  public String toString() {
+  public String getAdresseIp() {
     return adresseIp[0] + "." + adresseIp[1] + "." + adresseIp[2] + "." + adresseIp[3];
   }
 }
