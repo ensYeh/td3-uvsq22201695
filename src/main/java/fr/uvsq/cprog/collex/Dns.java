@@ -6,7 +6,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -98,6 +100,26 @@ public class Dns {
     return byIp.get(ip.getAdresseIp());
   }
 
+  /**
+   * Retourne la liste des items pour un domaine donné.
+   *
+   * @param domaine le nom de domaine (ex: "uvsq.fr")
+   * @return la liste des DnsItem appartenant à ce domaine
+   */
+  public List<DnsItem> getItems(String domaine) {
+    if (domaine == null || domaine.isBlank()) {
+      return List.of();
+    }
+    String d = domaine.trim().toLowerCase();
+
+    List<DnsItem> result = new ArrayList<>();
+    for (DnsItem item : byName.values()) {
+      if (item.getNomMachine().getDomaine().equals(d)) {
+        result.add(item);
+      }
+    }
+    return result;
+  }
 
   public Map<String, DnsItem> getByName() {
     return Map.copyOf(byName);
