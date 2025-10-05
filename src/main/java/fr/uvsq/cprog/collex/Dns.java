@@ -68,7 +68,7 @@ public class Dns {
 
       // insertion dans les deux maps
       byName.put(nom.getNomQualifie(), item);
-      byIp.put(ip.toString(), item);
+      byIp.put(ip.getAdresseIp(), item);
     }
   }
 
