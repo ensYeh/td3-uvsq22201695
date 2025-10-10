@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -119,6 +120,45 @@ public class Dns {
       }
     }
     return result;
+  }
+
+  /**
+   * Ajoute une (nom, ip) à la base. - Refuse si le nom ou l'IP existent déjà (exception). - Ajoute
+   * immédiatement dans le fichier texte, puis met à jour les index en mémoire.
+   *
+   * @param ip  adresse IP à ajouter
+   * @param nom nom de machine qualifié à ajouter
+   * @throws IllegalArgumentException si ip ou nom est null
+   * @throws IllegalStateException    si le nom ou l'IP existent déjà
+   * @throws IOException              en cas d'erreur d'écriture du fichier
+   */
+  public synchronized void addItem(AdresseIp ip, NomMachine nom) throws IOException {
+    if (ip == null || nom == null) {
+      throw new IllegalArgumentException("NomMachine et AdresseIp ne peuvent pas être null");
+    }
+
+    String keyName = nom.getNomQualifie();
+    String keyIp = ip.getAdresseIp();
+
+    if (byName.containsKey(keyName)) {
+      throw new IllegalStateException("Le nom de machine existe déjà : " + keyName);
+    }
+    if (byIp.containsKey(keyIp)) {
+      throw new IllegalStateException("L'adresse IP existe déjà : " + keyIp);
+    }
+
+    // 1) Ajoute d'abord dans le fichier (format : "nom_machine adresse_ip\n")
+    String line = keyName + " " + keyIp + System.lineSeparator();
+    Files.writeString(
+        dataFile,
+        line,
+        StandardOpenOption.CREATE, StandardOpenOption.APPEND
+    );
+
+    // 2) Si l'écriture réussit, on met à jour les index en mémoire
+    DnsItem item = new DnsItem(nom, ip);
+    byName.put(keyName, item);
+    byIp.put(keyIp, item);
   }
 
   public Map<String, DnsItem> getByName() {
