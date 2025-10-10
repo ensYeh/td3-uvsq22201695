@@ -182,4 +182,41 @@ public class DnsTest {
     );
   }
 
+  @Test
+  void addItem_ajoute_et_persiste() throws Exception {
+    Dns dns = new Dns();
+
+    // précondition : l'IP et le nom n'existent pas
+    assertNull(dns.getItem(new NomMachine("pikachu.uvsq.fr")));
+    assertNull(dns.getItem(new AdresseIp("193.51.25.24")));
+
+    dns.addItem(new AdresseIp("193.51.25.24"), new NomMachine("pikachu.uvsq.fr"));
+
+    // en mémoire
+    var item = dns.getItem(new NomMachine("pikachu.uvsq.fr"));
+    assertNotNull(item);
+    assertEquals("193.51.25.24", item.getAdresseIp().getAdresseIp());
+
+    // rechargement depuis fichier pour vérifier la persistance
+    Dns dnsReload = new Dns();
+    var itemReload = dnsReload.getItem(new NomMachine("pikachu.uvsq.fr"));
+    assertNotNull(itemReload);
+    assertEquals("193.51.25.24", itemReload.getAdresseIp().getAdresseIp());
+  }
+
+  @Test
+  void addItem_refuse_doublon_nom() throws Exception {
+    Dns dns = new Dns();
+    assertThrows(IllegalStateException.class, () ->
+        dns.addItem(new AdresseIp("10.0.0.1"), new NomMachine("www.uvsq.fr")));
+  }
+
+  @Test
+  void addItem_refuse_doublon_ip() throws Exception {
+    Dns dns = new Dns();
+    assertThrows(IllegalStateException.class, () ->
+        dns.addItem(new AdresseIp("193.51.31.90"), new NomMachine("autre.uvsq.fr")));
+  }
+
+
 }
