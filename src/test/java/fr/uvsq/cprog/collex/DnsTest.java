@@ -218,5 +218,20 @@ public class DnsTest {
         dns.addItem(new AdresseIp("193.51.31.90"), new NomMachine("autre.uvsq.fr")));
   }
 
+  @Test
+  void addItem_refuse_ip_null() throws Exception {
+    Dns dns = new Dns();
+    // nom valide, IP null -> IllegalArgumentException attendu
+    assertThrows(IllegalArgumentException.class, () ->
+        dns.addItem(null, new NomMachine("nouveau.uvsq.fr")));
+  }
+
+  @Test
+  void addItem_refuse_nom_null() throws Exception {
+    Dns dns = new Dns();
+    // IP valide, nom null -> IllegalArgumentException attendu
+    assertThrows(IllegalArgumentException.class, () ->
+        dns.addItem(new AdresseIp("10.0.0.2"), null));
+  }
 
 }
