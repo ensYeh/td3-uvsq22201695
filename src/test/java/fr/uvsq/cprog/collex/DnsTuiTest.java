@@ -91,4 +91,59 @@ public class DnsTuiTest {
     tui.affiche("OK");
     assertEquals("OK" + System.lineSeparator(), buffer.toString());
   }
+
+  @Test
+  void testEofRetourneQuitCommand() {
+    var buffer = new ByteArrayOutputStream();
+    DnsTui tui = creerTui("", buffer); // aucune ligne => !hasNextLine()
+    assertInstanceOf(QuitCommand.class, tui.nextCommande());
+  }
+
+  @Test
+  void testLsMauvaisUsageRetourneError() {
+    var buffer = new ByteArrayOutputStream();
+
+    // "ls" sans domaine
+    DnsTui tui = creerTui("ls\n", buffer);
+    assertInstanceOf(ErrorCommand.class, tui.nextCommande());
+
+    // "ls -a" sans domaine
+    tui = creerTui("ls -a\n", buffer);
+    assertInstanceOf(ErrorCommand.class, tui.nextCommande());
+
+    // "ls -b uvsq.fr" (mauvaise option)
+    tui = creerTui("ls -b uvsq.fr\n", buffer);
+    assertInstanceOf(ErrorCommand.class, tui.nextCommande());
+  }
+
+  @Test
+  void testAddMauvaisUsageRetourneError() {
+    var buffer = new ByteArrayOutputStream();
+
+    // "add" sans arguments
+    DnsTui tui = creerTui("add\n", buffer);
+    assertInstanceOf(ErrorCommand.class, tui.nextCommande());
+
+    // "add" avec un seul argument
+    tui = creerTui("add 193.51.25.24\n", buffer);
+    assertInstanceOf(ErrorCommand.class, tui.nextCommande());
+
+    // "add" avec trop d'arguments
+    tui = creerTui("add 193.51.25.24 a.b.c d\n", buffer);
+    assertInstanceOf(ErrorCommand.class, tui.nextCommande());
+  }
+
+  @Test
+  void testTokenInvalideSeulRetourneError() {
+    var buffer = new ByteArrayOutputStream();
+
+    // pas de point -> pas FQDN
+    assertInstanceOf(ErrorCommand.class, creerTui("truc\n", buffer).nextCommande());
+
+    // label vide (double point) -> invalide
+    assertInstanceOf(ErrorCommand.class, creerTui("a..b\n", buffer).nextCommande());
+
+    // caractère interdit -> invalide
+    assertInstanceOf(ErrorCommand.class, creerTui("w#w.fr\n", buffer).nextCommande());
+  }
 }

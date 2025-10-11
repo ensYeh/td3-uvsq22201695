@@ -61,9 +61,14 @@ public final class DnsTui {
     // ls [-a] domaine
     if ("ls".equals(head)) {
       if (p.length == 2) {
-        return new ListDomainCommand(p[1], /*sortByIp=*/false);
+        // cas "ls <domaine>" (refuse explicitement "ls -a" sans domaine)
+        if ("-a".equals(p[1])) {
+          return new ErrorCommand("Usage : ls [-a] domaine");
+        }
+        return new ListDomainCommand(p[1], false);
       } else if (p.length == 3 && "-a".equals(p[1])) {
-        return new ListDomainCommand(p[2], /*sortByIp=*/true);
+        // cas "ls -a <domaine>"
+        return new ListDomainCommand(p[2], true);
       } else {
         return new ErrorCommand("Usage : ls [-a] domaine");
       }
