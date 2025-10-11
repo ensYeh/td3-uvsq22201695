@@ -3,7 +3,7 @@ package fr.uvsq.cprog.collex;
 /**
  * Représente une adresse IPv4.
  */
-public class AdresseIp {
+public class AdresseIp implements Comparable<AdresseIp> {
 
   private final int[] adresseIp = new int[4];
 
@@ -35,5 +35,22 @@ public class AdresseIp {
 
   public String getAdresseIp() {
     return adresseIp[0] + "." + adresseIp[1] + "." + adresseIp[2] + "." + adresseIp[3];
+  }
+
+  /**
+   * Compare deux adresses IP numériquement.
+   *
+   * @param other l'autre adresse IP
+   * @return négatif si this < other, positif si this > other, 0 si identiques
+   */
+  @Override
+  public int compareTo(AdresseIp other) {
+    for (int i = 0; i < 4; i++) {
+      int cmp = Integer.compare(this.adresseIp[i], other.adresseIp[i]);
+      if (cmp != 0) {
+        return cmp;
+      }
+    }
+    return 0;
   }
 }
